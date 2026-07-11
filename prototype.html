@@ -1,0 +1,2939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMS Onboarding Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #10b981;
+            --background: #f3f4f6;
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        #app {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        body.auth-mode #app {
+            display: none;
+        }
+
+        body.app-mode #login-page {
+            display: none;
+        }
+
+        #login-page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(320px, 460px) minmax(420px, 1fr);
+            background:
+                radial-gradient(circle at top left, rgba(79, 70, 229, 0.18), transparent 35%),
+                linear-gradient(135deg, #eef2ff 0%, #f8fafc 45%, #e0f2fe 100%);
+        }
+
+        .login-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+            border-right: 1px solid rgba(229, 231, 235, 0.9);
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .login-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .login-brand span {
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-copy h1 {
+            font-size: 34px;
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+
+        .login-copy p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border: 1px solid rgba(229, 231, 235, 0.9);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 45px -24px rgba(15, 23, 42, 0.3);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .login-form button {
+            width: 100%;
+            margin-top: 8px;
+            padding: 12px 20px;
+        }
+
+        .login-error {
+            min-height: 20px;
+            font-size: 13px;
+            color: var(--danger);
+        }
+
+        .login-demo {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .login-showcase {
+            padding: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .showcase-card {
+            width: min(100%, 760px);
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 55%, #312e81 100%);
+            color: white;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 28px 60px -30px rgba(15, 23, 42, 0.55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .showcase-card::before,
+        .showcase-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .showcase-card::before {
+            width: 240px;
+            height: 240px;
+            top: -80px;
+            right: -40px;
+        }
+
+        .showcase-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -60px;
+            left: -20px;
+        }
+
+        .showcase-grid {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .showcase-metric {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .showcase-metric strong {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .showcase-metric span {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        /* Sidebar */
+        aside {
+            width: 260px;
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .brand {
+            padding: 24px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand span {
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-group {
+            padding: 16px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0 24px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: #f9fafb;
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background-color: #eef2ff;
+            color: var(--primary);
+            border-right: 4px solid var(--primary);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        header {
+            background-color: var(--surface);
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .screen {
+            display: none;
+            padding: 32px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* UI Components */
+        .card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            margin-bottom: 24px;
+        }
+
+        h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-main); }
+        p.subtitle { color: var(--text-muted); margin-bottom: 24px; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        input, select {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        button.secondary { background-color: white; color: var(--text-main); border: 1px solid var(--border); }
+        button.secondary:hover { background-color: #f9fafb; }
+        button.success { background-color: var(--secondary); }
+        button.success:hover { background-color: #059669; }
+        button.danger { background-color: var(--danger); }
+        button.danger:hover { background-color: #dc2626; }
+
+        @media (max-width: 960px) {
+            #login-page {
+                grid-template-columns: 1fr;
+            }
+
+            .login-panel,
+            .login-showcase {
+                padding: 28px 20px;
+            }
+
+            .showcase-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            background-color: #f9fafb;
+        }
+
+        td { font-size: 14px; }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .badge.draft { background-color: #f3f4f6; color: #4b5563; }
+        .badge.pending { background-color: #fef3c7; color: #b45309; }
+        .badge.active { background-color: #d1fae5; color: #047857; }
+        .badge.review { background-color: #e0e7ff; color: #4338ca; }
+
+        /* Stepper */
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--border);
+            z-index: 1;
+        }
+
+        .step {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--surface);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+
+        .step.active .step-circle {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .step.completed .step-circle {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .step.active .step-label { color: var(--primary); }
+
+        .top-status-bar {
+            background: linear-gradient(90deg, var(--primary), #818cf8);
+            color: white;
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Premium Modal CSS */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            padding: 40px 16px;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px 28px;
+            width: 100%;
+            max-width: 620px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin: auto 0;
+        }
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 24px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+        }
+        .modal-close:hover {
+            background-color: #f3f4f6;
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body class="auth-mode">
+
+    <!-- State & Logic -->
+    <script>
+        // Global State
+        const state = {
+            currentScreen: 'screen-1',
+            isAuthenticated: false,
+            currentUser: {
+                name: 'Admin User',
+                role: 'System Administrator',
+                email: 'admin@vrkerp.com'
+            },
+            employee: {
+                name: '',
+                email: '',
+                phone: '',
+                client: '',
+                designation: '',
+                status: 'Not Initiated',
+                ctc: '',
+                doj: '',
+                pfApplicable: '', // 'With PF' or 'Without PF' — Req #1
+                assets: { laptop: false, tools: false, dataCard: false, laptopDetails: '', toolsDetails: '', dataCardDetails: '', receivedFromSpoc: false }, // Req #2
+                emergencyName: '',
+                emergencyPhone: '',
+                emergencyOtpVerified: false // Req #5
+            },
+            notificationLog: [], // Req #4 — tracks mail notifications
+            clients: [
+                { id: 1, name: 'Samsung', spoc: 'Rajesh Menon', email: 'spoc@samsung.com', status: 'Active' },
+                { id: 2, name: 'Ericsson', spoc: 'Priya Sharma', email: 'spoc@ericsson.com', status: 'Active' },
+                { id: 3, name: 'Vedang', spoc: 'Suresh Patel', email: 'spoc@vedang.com', status: 'Active' },
+                { id: 4, name: 'TCTS', spoc: 'Amit Joshi', email: 'spoc@tcts.com', status: 'Active' },
+                { id: 5, name: 'Orange', spoc: 'Deepak Nair', email: 'spoc@orange.com', status: 'Active' },
+                { id: 6, name: 'IBM', spoc: 'Rohan Desai', email: 'spoc@ibm.com', status: 'Active' },
+                { id: 7, name: 'Airspan', spoc: 'Sanjay Mehta', email: 'spoc@airspan.com', status: 'Active' },
+                { id: 8, name: 'Nokia (GCS)', spoc: 'Vikram Singh', email: 'spoc@nokia.com', status: 'Active' },
+                { id: 9, name: 'Hitachi', spoc: 'Priyanka R', email: 'spoc@hitachi.com', status: 'Active' },
+                { id: 10, name: 'Younified', spoc: 'Neha Gupta', email: 'spoc@younified.com', status: 'Active' }
+            ],
+            employees_master: [
+                { id: 1, empCode: 'SP111', name: 'Vijay Kumar Garg', designation: 'Technical Support', client: 'Samsung' },
+                { id: 2, empCode: 'SP174', name: 'Jayesh Gharat', designation: 'Project Control Staff', client: 'Samsung' },
+                { id: 3, empCode: 'SP183', name: 'Hariharan K', designation: 'RAN Fault Mgmt', client: 'Samsung' },
+                { id: 4, empCode: 'SP176', name: 'Ashish Bhaddak', designation: 'RF Analyser Staff', client: 'Samsung' },
+                { id: 5, empCode: 'S1082', name: 'Alok Kumar Srivastava', designation: 'C&I Support', client: 'Samsung' },
+                { id: 6, empCode: 'S1081', name: 'Vivek Pradip Khare', designation: 'RF Engineer', client: 'Samsung' },
+                { id: 7, empCode: 'ER0011', name: 'Dharmendra Singh', designation: 'FME', client: 'Ericsson' },
+                { id: 8, empCode: 'ER0012', name: 'Jeewan Singh', designation: 'Logistics Coord', client: 'Ericsson' },
+                { id: 9, empCode: 'VE0155', name: 'Shivanand Aptagiri', designation: 'Field Engineer', client: 'Vedang' },
+                { id: 10, empCode: 'VE0059', name: 'Dhiraj Kudkelwar', designation: 'Rigger', client: 'Vedang' },
+                { id: 11, empCode: 'VP009', name: 'Gireesh Kumar CG', designation: 'Project Technical Lead', client: 'TCTS' },
+                { id: 12, empCode: 'VP012', name: 'Hrithik Yadav', designation: 'Network L1 Engineer', client: 'TCTS' },
+                { id: 13, empCode: 'O004', name: 'Jasdip Kholi', designation: 'HTE NCE L3', client: 'Orange' },
+                { id: 14, empCode: 'IB001', name: 'Neeraj Gupta', designation: 'Network Engineer L2', client: 'IBM' }
+            ],
+            salary_templates: [
+                { id: 1, name: 'Samsung — OUTPAR', basic: '28,000', hra: '14,000', mobile: '1,000', conveyance: '1,600', vda: '0', statBonus: '2,333', lta: '1,500', otherAllow: '0', special: '18,000' },
+                { id: 2, name: 'Samsung — ABE', basic: '22,000', hra: '11,000', mobile: '500', conveyance: '1,600', vda: '0', statBonus: '1,833', lta: '1,200', otherAllow: '0', special: '6,000' },
+                { id: 3, name: 'Ericsson', basic: '18,000', hra: '9,000', mobile: '0', conveyance: '0', vda: '1,200', statBonus: '1,500', lta: '0', otherAllow: '1,300', special: '10,500' },
+                { id: 4, name: 'Vedang', basic: '15,000', hra: '7,500', mobile: '500', conveyance: '0', vda: '0', statBonus: '1,250', lta: '800', otherAllow: '0', special: '8,800' },
+                { id: 5, name: 'TCTS', basic: '20,000', hra: '10,000', mobile: '800', conveyance: '1,600', vda: '0', statBonus: '1,667', lta: '1,000', otherAllow: '817', special: '10,884' },
+                { id: 6, name: 'Orange', basic: '30,000', hra: '15,000', mobile: '1,000', conveyance: '2,000', vda: '0', statBonus: '2,500', lta: '1,500', otherAllow: '0', special: '19,051' },
+                { id: 7, name: 'IBM', basic: '35,000', hra: '17,500', mobile: '0', conveyance: '0', vda: '0', statBonus: '2,917', lta: '2,000', otherAllow: '0', special: '5,000' },
+                { id: 8, name: 'Nokia (GCS)', basic: '18,000', hra: '9,000', mobile: '800', conveyance: '1,600', vda: '0', statBonus: '1,500', lta: '0', otherAllow: '0', special: '11,000' }
+            ],
+            statutory_rules: [
+                { id: 1, name: 'PF Employer', description: 'Provident Fund Contribution', value: '12%' },
+                { id: 2, name: 'PF Employee', description: 'Provident Fund Deduction', value: '12%' },
+                { id: 3, name: 'Professional Tax', description: 'State-wise Tax', value: '₹208' },
+                { id: 4, name: 'ESIC Employer', description: 'Health Insurance Contribution', value: '3.25%' },
+                { id: 5, name: 'ESIC Employee', description: 'Health Insurance Deduction', value: '0.75%' }
+            ],
+            assets_inventory: [
+                { id: 1, assetCode: 'LAP-001', type: 'Laptop', brand: 'Dell Latitude 5540', serial: 'DL5540-8827', assignedTo: 'Vijay Kumar Garg', empCode: 'SP111', client: 'Samsung', status: 'Allocated', allocatedDate: '2025-08-15', allocatedBy: 'Rajesh Menon' },
+                { id: 2, assetCode: 'LAP-002', type: 'Laptop', brand: 'HP ProBook 450', serial: 'HP450-3341', assignedTo: 'Jayesh Gharat', empCode: 'SP174', client: 'Samsung', status: 'Allocated', allocatedDate: '2025-09-01', allocatedBy: 'Rajesh Menon' },
+                { id: 3, assetCode: 'LAP-003', type: 'Laptop', brand: 'Lenovo ThinkPad E14', serial: 'LN14-5567', assignedTo: '', empCode: '', client: 'Samsung', status: 'Available', allocatedDate: '', allocatedBy: '' },
+                { id: 4, assetCode: 'TLS-001', type: 'Tools Kit', brand: 'Field Toolkit Pro', serial: 'FTP-220', assignedTo: 'Hariharan K', empCode: 'SP183', client: 'Samsung', status: 'Allocated', allocatedDate: '2025-07-20', allocatedBy: 'Rajesh Menon' },
+                { id: 5, assetCode: 'TLS-002', type: 'Tools Kit', brand: 'RF Analyzer Kit', serial: 'RFA-118', assignedTo: 'Ashish Bhaddak', empCode: 'SP176', client: 'Samsung', status: 'Allocated', allocatedDate: '2025-10-05', allocatedBy: 'Rajesh Menon' },
+                { id: 6, assetCode: 'TLS-003', type: 'Tools Kit', brand: 'Fiber Splicing Kit', serial: 'FSK-071', assignedTo: '', empCode: '', client: 'Ericsson', status: 'Available', allocatedDate: '', allocatedBy: '' },
+                { id: 7, assetCode: 'DC-001', type: 'Data Card', brand: 'JioFi M2S', serial: 'JF-88901', assignedTo: 'Dharmendra Singh', empCode: 'ER0011', client: 'Ericsson', status: 'Allocated', allocatedDate: '2025-11-10', allocatedBy: 'Priya Sharma' },
+                { id: 8, assetCode: 'DC-002', type: 'Data Card', brand: 'Airtel 4G Dongle', serial: 'A4G-33201', assignedTo: '', empCode: '', client: 'Vedang', status: 'Available', allocatedDate: '', allocatedBy: '' },
+                { id: 9, assetCode: 'LAP-004', type: 'Laptop', brand: 'Dell Vostro 3520', serial: 'DV3520-1109', assignedTo: 'Gireesh Kumar CG', empCode: 'VP009', client: 'TCTS', status: 'Allocated', allocatedDate: '2025-06-18', allocatedBy: 'Amit Joshi' },
+                { id: 10, assetCode: 'DC-003', type: 'Data Card', brand: 'JioFi 6', serial: 'JF6-44501', assignedTo: 'Jasdip Kholi', empCode: 'O004', client: 'Orange', status: 'Allocated', allocatedDate: '2026-01-12', allocatedBy: 'Deepak Nair' }
+            ],
+            asset_transfers: [
+                { id: 1, assetCode: 'LAP-001', fromEmp: 'Alok Kumar Srivastava', toEmp: 'Vijay Kumar Garg', date: '2025-08-15', reason: 'Employee transfer — Mumbai circle' },
+                { id: 2, assetCode: 'DC-001', fromEmp: 'Jeewan Singh', toEmp: 'Dharmendra Singh', date: '2025-11-10', reason: 'Role reassignment' }
+            ],
+            exit_pipeline: []
+        };
+
+        let editingClientId = null;
+
+        function renderClientTable() {
+            const tbody = document.getElementById('client-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            state.clients.forEach(client => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${client.name}</td>
+                        <td>${client.spoc}</td>
+                        <td>${client.email}</td>
+                        <td><span class="badge ${client.status === 'Active' ? 'active' : 'draft'}">${client.status}</span></td>
+                        <td>
+                            <button class="secondary" style="padding: 4px 8px; font-size: 12px; margin-right: 4px;" onclick="editClient(${client.id})">Edit</button>
+                            <button class="danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteClient(${client.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function saveClient() {
+            const name = document.getElementById('client-name').value;
+            const spoc = document.getElementById('client-spoc').value;
+            const email = document.getElementById('client-email').value;
+            if(!name || !spoc || !email) { alert("Fill all client details"); return; }
+            
+            if(editingClientId) {
+                const c = state.clients.find(c => c.id === editingClientId);
+                c.name = name; c.spoc = spoc; c.email = email;
+                editingClientId = null;
+            } else {
+                state.clients.push({ id: Date.now(), name, spoc, email, status: 'Active' });
+            }
+            
+            document.getElementById('client-name').value = '';
+            document.getElementById('client-spoc').value = '';
+            document.getElementById('client-email').value = '';
+            
+            renderClientTable();
+        }
+
+        function editClient(id) {
+            const c = state.clients.find(c => c.id === id);
+            document.getElementById('client-name').value = c.name;
+            document.getElementById('client-spoc').value = c.spoc;
+            document.getElementById('client-email').value = c.email;
+            editingClientId = id;
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function deleteClient(id) {
+            if(confirm("Are you sure you want to delete this client?")) {
+                state.clients = state.clients.filter(c => c.id !== id);
+                renderClientTable();
+            }
+        }
+
+        let editingEmpId = null;
+        let editingSalaryId = null;
+        let editingStatId = null;
+
+        // --- Employee Master CRUD ---
+        function renderEmpTable() {
+            const tbody = document.getElementById('emp-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            state.employees_master.forEach(emp => {
+                tbody.innerHTML += `<tr>
+                    <td>${emp.empCode}</td><td>${emp.name}</td><td>${emp.designation}</td><td>${emp.client}</td>
+                    <td>
+                        <button class="secondary" style="padding: 4px 8px; font-size: 12px; margin-right: 4px;" onclick="editEmp(${emp.id})">Edit</button>
+                        <button class="danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteEmp(${emp.id})">Delete</button>
+                    </td>
+                </tr>`;
+            });
+        }
+        function saveEmp() {
+            const code = document.getElementById('emp-m-code').value;
+            const name = document.getElementById('emp-m-name').value;
+            const desig = document.getElementById('emp-m-desig').value;
+            const client = document.getElementById('emp-m-client').value;
+            if(!code || !name) return alert('Fill required fields');
+            if(editingEmpId) {
+                const e = state.employees_master.find(x => x.id === editingEmpId);
+                e.empCode = code; e.name = name; e.designation = desig; e.client = client;
+                editingEmpId = null;
+            } else state.employees_master.push({ id: Date.now(), empCode: code, name, designation: desig, client });
+            document.getElementById('emp-m-code').value = ''; document.getElementById('emp-m-name').value = '';
+            document.getElementById('emp-m-desig').value = ''; document.getElementById('emp-m-client').value = '';
+            renderEmpTable();
+        }
+        function editEmp(id) {
+            const e = state.employees_master.find(x => x.id === id);
+            document.getElementById('emp-m-code').value = e.empCode; document.getElementById('emp-m-name').value = e.name;
+            document.getElementById('emp-m-desig').value = e.designation; document.getElementById('emp-m-client').value = e.client;
+            editingEmpId = id; window.scrollTo(0, document.body.scrollHeight);
+        }
+        function deleteEmp(id) {
+            if(confirm("Delete this employee?")) { state.employees_master = state.employees_master.filter(x => x.id !== id); renderEmpTable(); }
+        }
+
+        // --- Salary Master CRUD ---
+        function renderSalaryTable() {
+            const tbody = document.getElementById('salary-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            state.salary_templates.forEach(s => {
+                tbody.innerHTML += `<tr>
+                    <td>${s.name}</td><td>${s.basic}</td><td>${s.hra}</td><td>${s.special}</td>
+                    <td>
+                        <button class="secondary" style="padding: 4px 8px; font-size: 12px; margin-right: 4px;" onclick="editSalary(${s.id})">Edit</button>
+                        <button class="danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteSalary(${s.id})">Delete</button>
+                    </td>
+                </tr>`;
+            });
+        }
+        function saveSalary() {
+            const name = document.getElementById('sal-name').value;
+            const basic = document.getElementById('sal-basic').value;
+            const hra = document.getElementById('sal-hra').value;
+            const special = document.getElementById('sal-special').value;
+            if(!name) return alert('Name required');
+            if(editingSalaryId) {
+                const s = state.salary_templates.find(x => x.id === editingSalaryId);
+                s.name = name; s.basic = basic; s.hra = hra; s.special = special;
+                editingSalaryId = null;
+            } else state.salary_templates.push({ id: Date.now(), name, basic, hra, special });
+            document.getElementById('sal-name').value = ''; document.getElementById('sal-basic').value = '';
+            document.getElementById('sal-hra').value = ''; document.getElementById('sal-special').value = '';
+            renderSalaryTable();
+        }
+        function editSalary(id) {
+            const s = state.salary_templates.find(x => x.id === id);
+            document.getElementById('sal-name').value = s.name; document.getElementById('sal-basic').value = s.basic;
+            document.getElementById('sal-hra').value = s.hra; document.getElementById('sal-special').value = s.special;
+            editingSalaryId = id; window.scrollTo(0, document.body.scrollHeight);
+        }
+        function deleteSalary(id) {
+            if(confirm("Delete template?")) { state.salary_templates = state.salary_templates.filter(x => x.id !== id); renderSalaryTable(); }
+        }
+
+        // --- Statutory Master CRUD ---
+        function renderStatTable() {
+            const tbody = document.getElementById('stat-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            state.statutory_rules.forEach(s => {
+                tbody.innerHTML += `<tr>
+                    <td>${s.name}</td><td>${s.description}</td><td>${s.value}</td>
+                    <td>
+                        <button class="secondary" style="padding: 4px 8px; font-size: 12px; margin-right: 4px;" onclick="editStat(${s.id})">Edit</button>
+                        <button class="danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteStat(${s.id})">Delete</button>
+                    </td>
+                </tr>`;
+            });
+        }
+        function saveStat() {
+            const name = document.getElementById('stat-name').value;
+            const desc = document.getElementById('stat-desc').value;
+            const val = document.getElementById('stat-val').value;
+            if(!name) return alert('Name required');
+            if(editingStatId) {
+                const s = state.statutory_rules.find(x => x.id === editingStatId);
+                s.name = name; s.description = desc; s.value = val;
+                editingStatId = null;
+            } else state.statutory_rules.push({ id: Date.now(), name, description: desc, value: val });
+            document.getElementById('stat-name').value = ''; document.getElementById('stat-desc').value = ''; document.getElementById('stat-val').value = '';
+            renderStatTable();
+        }
+        function editStat(id) {
+            const s = state.statutory_rules.find(x => x.id === id);
+            document.getElementById('stat-name').value = s.name; document.getElementById('stat-desc').value = s.description; document.getElementById('stat-val').value = s.value;
+            editingStatId = id; window.scrollTo(0, document.body.scrollHeight);
+        }
+        function deleteStat(id) {
+            if(confirm("Delete rule?")) { state.statutory_rules = state.statutory_rules.filter(x => x.id !== id); renderStatTable(); }
+        }
+
+        // --- Asset Management CRUD ---
+        let editingAssetId = null;
+
+        function renderAssetTable() {
+            const tbody = document.getElementById('asset-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            state.assets_inventory.forEach(a => {
+                const statusBadge = a.status === 'Allocated' ? 'active' : (a.status === 'Available' ? 'review' : 'draft');
+                tbody.innerHTML += `<tr>
+                    <td style="font-weight: 500;">${a.assetCode}</td>
+                    <td><span class="badge ${a.type === 'Laptop' ? 'review' : (a.type === 'Data Card' ? 'pending' : 'draft')}" style="font-size:11px;">${a.type}</span></td>
+                    <td>${a.brand}</td>
+                    <td style="font-size:12px; color: var(--text-muted);">${a.serial}</td>
+                    <td>${a.assignedTo || '<span style="color: var(--text-muted); font-size: 12px;">— Unassigned —</span>'}</td>
+                    <td>${a.client}</td>
+                    <td><span class="badge ${statusBadge}">${a.status}</span></td>
+                    <td>
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                            <button class="secondary" style="padding: 3px 8px; font-size: 11px;" onclick="editAsset(${a.id})">Edit</button>
+                            ${a.status === 'Available' ? `<button style="padding: 3px 8px; font-size: 11px; background: var(--secondary);" onclick="openAllocateModal(${a.id})">Allocate</button>` : ''}
+                            ${a.status === 'Allocated' ? `<button style="padding: 3px 8px; font-size: 11px; background: #6366f1;" onclick="openTransferModal(${a.id})">Transfer</button>` : ''}
+                            ${a.status === 'Allocated' ? `<button class="danger" style="padding: 3px 8px; font-size: 11px;" onclick="deallocateAsset(${a.id})">Return</button>` : ''}
+                            ${a.status === 'Available' ? `<button class="danger" style="padding: 3px 8px; font-size: 11px;" onclick="deleteAsset(${a.id})">Delete</button>` : ''}
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            // Update stats
+            const total = state.assets_inventory.length;
+            const allocated = state.assets_inventory.filter(a => a.status === 'Allocated').length;
+            const available = total - allocated;
+            const el1 = document.getElementById('asset-stat-total'); if(el1) el1.textContent = total;
+            const el2 = document.getElementById('asset-stat-allocated'); if(el2) el2.textContent = allocated;
+            const el3 = document.getElementById('asset-stat-available'); if(el3) el3.textContent = available;
+        }
+
+        function renderAssetTransferLog() {
+            const tbody = document.getElementById('transfer-log-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            state.asset_transfers.forEach(t => {
+                tbody.innerHTML += `<tr>
+                    <td style="font-weight: 500;">${t.assetCode}</td>
+                    <td>${t.fromEmp || '— New —'}</td>
+                    <td>${t.toEmp}</td>
+                    <td>${t.date}</td>
+                    <td style="font-size: 12px; color: var(--text-muted);">${t.reason}</td>
+                </tr>`;
+            });
+        }
+
+        function saveAsset() {
+            const code = document.getElementById('asset-code-input').value;
+            const type = document.getElementById('asset-type-input').value;
+            const brand = document.getElementById('asset-brand-input').value;
+            const serial = document.getElementById('asset-serial-input').value;
+            const client = document.getElementById('asset-client-input').value;
+            if(!code || !type || !brand) return alert('Fill required fields (Code, Type, Brand)');
+            if(editingAssetId) {
+                const a = state.assets_inventory.find(x => x.id === editingAssetId);
+                a.assetCode = code; a.type = type; a.brand = brand; a.serial = serial; a.client = client;
+                editingAssetId = null;
+            } else {
+                state.assets_inventory.push({ id: Date.now(), assetCode: code, type, brand, serial, assignedTo: '', empCode: '', client, status: 'Available', allocatedDate: '', allocatedBy: '' });
+            }
+            document.getElementById('asset-code-input').value = '';
+            document.getElementById('asset-type-input').value = '';
+            document.getElementById('asset-brand-input').value = '';
+            document.getElementById('asset-serial-input').value = '';
+            document.getElementById('asset-client-input').value = '';
+            renderAssetTable();
+        }
+
+        function editAsset(id) {
+            const a = state.assets_inventory.find(x => x.id === id);
+            document.getElementById('asset-code-input').value = a.assetCode;
+            document.getElementById('asset-type-input').value = a.type;
+            document.getElementById('asset-brand-input').value = a.brand;
+            document.getElementById('asset-serial-input').value = a.serial;
+            document.getElementById('asset-client-input').value = a.client;
+            editingAssetId = id;
+            document.querySelector('#screen-14 .card:last-child').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteAsset(id) {
+            if(confirm("Delete this asset?")) { state.assets_inventory = state.assets_inventory.filter(x => x.id !== id); renderAssetTable(); }
+        }
+
+        function deallocateAsset(id) {
+            if(!confirm("Return this asset? It will be marked as Available.")) return;
+            const a = state.assets_inventory.find(x => x.id === id);
+            a.assignedTo = ''; a.empCode = ''; a.status = 'Available'; a.allocatedDate = ''; a.allocatedBy = '';
+            renderAssetTable();
+            alert('Asset ' + a.assetCode + ' has been returned and is now Available.');
+        }
+
+        function openAllocateModal(id) {
+            const modal = document.getElementById('asset-allocate-modal');
+            modal.classList.add('active');
+            document.getElementById('allocate-asset-id').value = id;
+            const a = state.assets_inventory.find(x => x.id === id);
+            document.getElementById('allocate-asset-info').textContent = a.assetCode + ' — ' + a.brand;
+            // Populate employee dropdown
+            const sel = document.getElementById('allocate-emp-select');
+            sel.innerHTML = '<option value="">— Select Employee —</option>' +
+                state.employees_master.map(e => `<option value="${e.id}">${e.empCode} — ${e.name} (${e.client})</option>`).join('');
+        }
+
+        function confirmAllocate() {
+            const assetId = parseInt(document.getElementById('allocate-asset-id').value);
+            const empId = parseInt(document.getElementById('allocate-emp-select').value);
+            if(!empId) return alert('Select an employee');
+            const a = state.assets_inventory.find(x => x.id === assetId);
+            const e = state.employees_master.find(x => x.id === empId);
+            a.assignedTo = e.name;
+            a.empCode = e.empCode;
+            a.status = 'Allocated';
+            a.allocatedDate = new Date().toISOString().split('T')[0];
+            a.allocatedBy = 'SPOC';
+            // Log the allocation as a transfer from "New"
+            state.asset_transfers.push({ id: Date.now(), assetCode: a.assetCode, fromEmp: '', toEmp: e.name, date: a.allocatedDate, reason: 'Initial allocation by SPOC' });
+            document.getElementById('asset-allocate-modal').classList.remove('active');
+            renderAssetTable();
+            renderAssetTransferLog();
+            alert(`✅ Asset ${a.assetCode} allocated to ${e.name} (${e.empCode})`);
+        }
+
+        function openTransferModal(id) {
+            const modal = document.getElementById('asset-transfer-modal');
+            modal.classList.add('active');
+            document.getElementById('transfer-asset-id').value = id;
+            const a = state.assets_inventory.find(x => x.id === id);
+            document.getElementById('transfer-asset-info').textContent = a.assetCode + ' — ' + a.brand;
+            document.getElementById('transfer-from-info').textContent = a.assignedTo + ' (' + a.empCode + ')';
+            // Populate employee dropdown (exclude current holder)
+            const sel = document.getElementById('transfer-emp-select');
+            sel.innerHTML = '<option value="">— Select New Employee —</option>' +
+                state.employees_master.filter(e => e.empCode !== a.empCode).map(e => `<option value="${e.id}">${e.empCode} — ${e.name} (${e.client})</option>`).join('');
+        }
+
+        function confirmTransfer() {
+            const assetId = parseInt(document.getElementById('transfer-asset-id').value);
+            const empId = parseInt(document.getElementById('transfer-emp-select').value);
+            const reason = document.getElementById('transfer-reason').value || 'Asset reassignment';
+            if(!empId) return alert('Select a new employee');
+            const a = state.assets_inventory.find(x => x.id === assetId);
+            const e = state.employees_master.find(x => x.id === empId);
+            const fromName = a.assignedTo;
+            // Log transfer
+            state.asset_transfers.push({ id: Date.now(), assetCode: a.assetCode, fromEmp: fromName, toEmp: e.name, date: new Date().toISOString().split('T')[0], reason });
+            // Update asset
+            a.assignedTo = e.name;
+            a.empCode = e.empCode;
+            a.allocatedDate = new Date().toISOString().split('T')[0];
+            a.allocatedBy = 'SPOC';
+            document.getElementById('asset-transfer-modal').classList.remove('active');
+            document.getElementById('transfer-reason').value = '';
+            renderAssetTable();
+            renderAssetTransferLog();
+            alert(`✅ Asset ${a.assetCode} transferred from ${fromName} → ${e.name}`);
+        }
+
+        // SPOC asset allocation shortcut from SPOC Portal
+        function spocAllocateAsset() {
+            navigateTo('screen-14');
+        }
+
+        function navigateTo(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            // Remove active class from nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Show target
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update sidebar active state if applicable
+            const navItem = document.querySelector(`[onclick="navigateTo('${screenId}')"]`);
+            if(navItem) navItem.classList.add('active');
+
+            // Handle special full-screen mode for self-onboarding (Screen 2)
+            const sidebar = document.getElementById('sidebar');
+            const header = document.querySelector('header');
+            if(screenId === 'screen-2') {
+                sidebar.style.display = 'none';
+                header.style.display = 'none';
+            } else {
+                sidebar.style.display = 'flex';
+                header.style.display = 'flex';
+            }
+
+            renderDynamicData();
+            state.currentScreen = screenId;
+        }
+
+        function renderDynamicData() {
+            // Update table rows based on state
+            const statusCells = document.querySelectorAll('.dyn-status');
+            const badgeClass = getBadgeClass(state.employee.status);
+            
+            statusCells.forEach(cell => {
+                cell.innerHTML = `<span class="badge ${badgeClass}">${state.employee.status}</span>`;
+            });
+
+            // Specific UI logic per screen based on status
+            if(document.getElementById('v1-actions')) {
+                document.getElementById('v1-actions').style.display = state.employee.status === 'Form Submitted' ? 'flex' : 'none';
+            }
+            if(document.getElementById('v1-pending')) {
+                document.getElementById('v1-pending').style.display = state.employee.status === 'Form Submitted' ? 'none' : 'flex';
+            }
+            if(document.getElementById('v2-actions')) {
+                document.getElementById('v2-actions').style.display = state.employee.status === 'Verifier 1 Cleared' ? 'flex' : 'none';
+            }
+            if(document.getElementById('v2-pending')) {
+                document.getElementById('v2-pending').style.display = state.employee.status === 'Verifier 1 Cleared' ? 'none' : 'flex';
+            }
+            if(document.getElementById('spoc-actions')) {
+                document.getElementById('spoc-actions').style.display = state.employee.status === 'Awaiting Joining' ? 'block' : 'none';
+            }
+            if(document.getElementById('spoc-allocate-btn')) {
+                document.getElementById('spoc-allocate-btn').style.display = (state.employee.status === 'Active' || state.employee.status === 'Payroll Active') ? 'block' : 'none';
+            }
+
+            // HR Offer screen: show candidate info if recruitment submitted
+            renderHRCandidateInfo();
+            renderRecruitmentTable();
+            if(document.getElementById('hr-actions')) {
+                document.getElementById('hr-actions').style.display = state.employee.status === 'SPOC Activated' ? 'flex' : 'none';
+            }
+            if(document.getElementById('hr-pending')) {
+                document.getElementById('hr-pending').style.display = (state.employee.status === 'SPOC Activated' || state.employee.status === 'Active' || state.employee.status === 'Payroll Active') ? 'none' : 'block';
+            }
+            if(document.getElementById('hr-active-state')) {
+                document.getElementById('hr-active-state').style.display = (state.employee.status === 'Active' || state.employee.status === 'Payroll Active') ? 'block' : 'none';
+            }
+            renderClientTable();
+            renderEmpTable();
+            renderSalaryTable();
+            renderStatTable();
+            renderAssetTable();
+            renderAssetTransferLog();
+            populateExitEmployees();
+            renderExitPipeline();
+        }
+
+        function getInitials(name) {
+            return String(name || '')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(part => part[0].toUpperCase())
+                .join('') || 'U';
+        }
+
+        function syncAuthView() {
+            document.body.classList.toggle('auth-mode', !state.isAuthenticated);
+            document.body.classList.toggle('app-mode', state.isAuthenticated);
+            updateUserProfile();
+
+            if(!state.isAuthenticated) {
+                const emailInput = document.getElementById('login-email');
+                if(emailInput) emailInput.focus();
+            }
+        }
+
+        function updateUserProfile() {
+            const nameEl = document.getElementById('header-user-name');
+            const roleEl = document.getElementById('header-user-role');
+            const avatarEl = document.getElementById('header-user-avatar');
+            if(nameEl) nameEl.textContent = state.currentUser.name;
+            if(roleEl) roleEl.textContent = state.currentUser.role;
+            if(avatarEl) avatarEl.textContent = getInitials(state.currentUser.name);
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            const accounts = [
+                { email: 'admin@vrkerp.com', password: 'Admin@123', name: 'Admin User', role: 'System Administrator' },
+                { email: 'hr@vrkerp.com', password: 'Hr@123', name: 'HR Manager', role: 'HR Operations' }
+            ];
+
+            const matchedUser = accounts.find(account => account.email === email && account.password === password);
+            if(!matchedUser) {
+                if(errorEl) errorEl.textContent = 'Use a valid demo account to access the prototype.';
+                return;
+            }
+
+            state.isAuthenticated = true;
+            state.currentUser = {
+                name: matchedUser.name,
+                role: matchedUser.role,
+                email: matchedUser.email
+            };
+            if(errorEl) errorEl.textContent = '';
+            syncAuthView();
+            navigateTo('screen-1');
+        }
+
+        function logout() {
+            state.isAuthenticated = false;
+            state.currentUser = {
+                name: 'Admin User',
+                role: 'System Administrator',
+                email: 'admin@vrkerp.com'
+            };
+            const emailInput = document.getElementById('login-email');
+            const passwordInput = document.getElementById('login-password');
+            const errorEl = document.getElementById('login-error');
+            if(emailInput) emailInput.value = '';
+            if(passwordInput) passwordInput.value = '';
+            if(errorEl) errorEl.textContent = '';
+            syncAuthView();
+        }
+
+        function getBadgeClass(status) {
+            if(status.includes('Active')) return 'active';
+            if(status.includes('Submitted') || status.includes('Review') || status.includes('Cleared')) return 'review';
+            if(status.includes('Sent') || status.includes('Awaiting') || status.includes('Pending')) return 'pending';
+            return 'draft';
+        }
+
+        // Action Handlers
+        function parseCurrency(val) {
+            return parseInt(String(val).replace(/[^\d]/g, ''), 10) || 0;
+        }
+        function fmtCurrency(num) {
+            return num.toLocaleString('en-IN');
+        }
+
+        function updateSalaryFields() {
+            const templateId = document.getElementById('emp-salary-template').value;
+            const template = state.salary_templates.find(t => t.id == parseInt(templateId));
+            if(template) {
+                document.getElementById('offer-basic').value = template.basic;
+                document.getElementById('offer-hra').value = template.hra;
+                document.getElementById('offer-mobile').value = template.mobile || '0';
+                document.getElementById('offer-conveyance').value = template.conveyance || '0';
+                document.getElementById('offer-vda').value = template.vda || '0';
+                document.getElementById('offer-statbonus').value = template.statBonus || '0';
+                document.getElementById('offer-lta').value = template.lta || '0';
+                document.getElementById('offer-otherallow').value = template.otherAllow || '0';
+                document.getElementById('offer-special').value = template.special;
+                
+                // Set default deductions (simplified)
+                const basicVal = parseCurrency(template.basic);
+                document.getElementById('offer-pf').value = fmtCurrency(Math.round(basicVal * 0.12));
+                document.getElementById('offer-esic').value = fmtCurrency(Math.round(basicVal * 0.0075));
+                document.getElementById('offer-pt').value = '208';
+                document.getElementById('offer-tds').value = '0';
+                
+                calcOfferSalary();
+            }
+        }
+        function calcOfferSalary() {
+            const earnFields = ['offer-basic','offer-hra','offer-mobile','offer-conveyance','offer-vda','offer-statbonus','offer-lta','offer-otherallow','offer-special'];
+            const dedFields = ['offer-pf','offer-esic','offer-pt','offer-tds'];
+            
+            let gross = 0;
+            earnFields.forEach(f => { const el = document.getElementById(f); if(el) gross += parseCurrency(el.value); });
+            
+            let totalDed = 0;
+            dedFields.forEach(f => { const el = document.getElementById(f); if(el) totalDed += parseCurrency(el.value); });
+            
+            let net = gross - totalDed;
+            
+            const grossEl = document.getElementById('offer-gross');
+            const dedEl = document.getElementById('offer-total-ded');
+            const netEl = document.getElementById('offer-net');
+            
+            if(grossEl) grossEl.textContent = '₹' + fmtCurrency(gross);
+            if(dedEl) dedEl.textContent = '₹' + fmtCurrency(totalDed);
+            if(netEl) netEl.textContent = '₹' + fmtCurrency(net);
+        }
+
+        function renderOfferOptions() {
+            const clientSelect = document.getElementById('emp-client');
+            if(clientSelect) {
+                clientSelect.innerHTML = state.clients.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            }
+            const salSelect = document.getElementById('emp-salary-template');
+            if(salSelect) {
+                salSelect.innerHTML = state.salary_templates.map(t => `<option value="${t.id}">${t.name} (Basic: ₹${t.basic})</option>`).join('');
+                updateSalaryFields();
+            }
+        }
+
+        // Req #5 — Emergency Contact OTP
+        let generatedOtp = '';
+        function sendEmergencyOtp() {
+            const phone = document.getElementById('emp-emergency-phone').value;
+            if(!phone || phone.length < 10) { alert('Enter valid emergency contact number'); return; }
+            generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
+            document.getElementById('otp-section').style.display = 'flex';
+            document.getElementById('otp-sent-msg').style.display = 'block';
+            alert('OTP sent to emergency contact: ' + generatedOtp + ' (Demo Mode)');
+        }
+        function verifyEmergencyOtp() {
+            const entered = document.getElementById('emp-otp-input').value;
+            if(entered === generatedOtp) {
+                state.employee.emergencyOtpVerified = true;
+                document.getElementById('otp-verified-badge').style.display = 'inline-flex';
+                document.getElementById('otp-section').style.display = 'none';
+                document.getElementById('otp-sent-msg').style.display = 'none';
+                alert('Emergency contact verified successfully!');
+            } else {
+                alert('Invalid OTP. Please try again.');
+            }
+        }
+
+        // Req #4 — Notification logger
+        function logNotification(event, recipients) {
+            state.notificationLog.push({ time: new Date().toLocaleString(), event, recipients });
+            renderNotificationLog();
+        }
+        function renderNotificationLog() {
+            const tbody = document.getElementById('notification-log-body');
+            if(!tbody) return;
+            tbody.innerHTML = state.notificationLog.map(n =>
+                `<tr><td style="font-size:13px;">${n.time}</td><td style="font-size:13px;">${n.event}</td><td style="font-size:13px;">${n.recipients}</td></tr>`
+            ).join('');
+        }
+
+        function renderEmployeeSalaryOverview() {
+            const container = document.getElementById('emp-offer-overview');
+            if(!container) return;
+            const emp = state.employee;
+            if(emp.salaryTemplate) {
+                const gross = parseCurrency(emp.salaryTemplate.basic) + parseCurrency(emp.salaryTemplate.hra) + parseCurrency(emp.salaryTemplate.special);
+                container.innerHTML = `
+                    <div style="background: var(--surface); padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Role & Client</p>
+                        <p style="font-weight: 500; font-size: 13px;">${emp.designation || 'Field Engineer'} at ${emp.client || 'Samsung'}</p>
+                    </div>
+                    <div style="background: var(--surface); padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Salary Template</p>
+                        <p style="font-weight: 500; font-size: 13px; color: var(--primary);">${emp.salaryTemplate.name}</p>
+                    </div>
+                    <div style="background: var(--surface); padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Basic</p>
+                        <p style="font-weight: 500; font-size: 13px;">₹${emp.salaryTemplate.basic}</p>
+                    </div>
+                    <div style="background: var(--surface); padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">HRA</p>
+                        <p style="font-weight: 500; font-size: 13px;">₹${emp.salaryTemplate.hra}</p>
+                    </div>
+                    <div style="background: var(--surface); padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Special Allowance</p>
+                        <p style="font-weight: 500; font-size: 13px;">₹${emp.salaryTemplate.special}</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4f46e5, #818cf8); padding: 12px; border-radius: 6px; color: white;">
+                        <p style="font-size: 11px; opacity: 0.85; margin-bottom: 2px;">Gross Salary (Monthly)</p>
+                        <p style="font-weight: 600; font-size: 16px;">₹${fmtCurrency(gross)}</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px; padding: 12px;">Offer details pending.</p>';
+            }
+        }
+
+        // Action Handlers
+        function recruitmentSubmit() {
+            const name = document.getElementById('rec-name').value;
+            const email = document.getElementById('rec-email').value;
+            const phone = document.getElementById('rec-phone').value;
+            const ctc = document.getElementById('rec-ctc').value;
+            const pfTag = document.getElementById('rec-pf-tag').value; // Req #1
+            const remarks = document.getElementById('rec-remarks').value;
+            if(!name || !email || !phone || !ctc) { alert('Please fill all candidate details.'); return; }
+            if(!pfTag) { alert('⚠️ PF Tag (With PF / Without PF) is mandatory before submitting.'); return; } // Req #1
+            state.employee.name = name;
+            state.employee.email = email;
+            state.employee.phone = phone;
+            state.employee.ctc = ctc;
+            state.employee.pfApplicable = pfTag; // Req #1
+            state.employee.remarks = remarks;
+            state.employee.status = 'Recruitment Submitted';
+            alert(`Candidate ${name} submitted to HR for salary structure & offer.\nPF Status: ${pfTag}`);
+            renderDynamicData();
+        }
+
+        function renderHRCandidateInfo() {
+            const tbody = document.getElementById('hr-candidate-tbody');
+            if(!tbody) return;
+            const emp = state.employee;
+            if(emp.status === 'Not Initiated' || !emp.name) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">No candidates pending. Waiting for Recruitment to submit.</td></tr>';
+            } else {
+                const badgeClass = getBadgeClass(emp.status);
+                const showAction = emp.status === 'Recruitment Submitted';
+                const pfBadge = emp.pfApplicable === 'With PF'
+                    ? '<span class="badge active" style="font-size:11px;">With PF</span>'
+                    : '<span class="badge pending" style="font-size:11px;">Without PF</span>';
+                tbody.innerHTML = `<tr>
+                    <td style="font-weight: 500;">${emp.name}</td>
+                    <td>${emp.email}</td>
+                    <td>${emp.phone}</td>
+                    <td>₹${emp.ctc}</td>
+                    <td>${pfBadge}</td>
+                    <td style="font-size: 12px; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${emp.remarks || ''}">${emp.remarks || '-'}</td>
+                    <td><span class="badge ${badgeClass}">${emp.status}</span></td>
+                    <td>${showAction ? '<button class="primary" style="padding: 5px 12px; font-size: 12px;" onclick="selectCandidate()">Generate Offer</button>' : '<span style="font-size: 12px; color: var(--text-muted);">Done</span>'}</td>
+                </tr>`;
+            }
+        }
+
+        function selectCandidate() {
+            document.getElementById('offer-modal-overlay').classList.add('active');
+            document.getElementById('hr-selected-name').textContent = state.employee.name;
+            // Show PF status in modal
+            const pfInfo = document.getElementById('modal-pf-info');
+            if(pfInfo) pfInfo.textContent = state.employee.pfApplicable || 'Not Set';
+        }
+
+        function closeModal() {
+            document.getElementById('offer-modal-overlay').classList.remove('active');
+        }
+
+        function renderRecruitmentTable() {
+            const tbody = document.getElementById('rec-table-body');
+            if(!tbody) return;
+            const emp = state.employee;
+            if(emp.name) {
+                const badgeClass = getBadgeClass(emp.status);
+                const pfBadge = emp.pfApplicable === 'With PF'
+                    ? '<span class="badge active" style="font-size:11px;">With PF</span>'
+                    : (emp.pfApplicable ? '<span class="badge pending" style="font-size:11px;">Without PF</span>' : '-');
+                tbody.innerHTML = `<tr>
+                    <td>${emp.name}</td>
+                    <td>${emp.email}</td>
+                    <td>${emp.phone || '-'}</td>
+                    <td>₹${emp.ctc || '-'}</td>
+                    <td>${pfBadge}</td>
+                    <td style="font-size: 12px; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${emp.remarks || ''}">${emp.remarks || '-'}</td>
+                    <td><span class="badge ${badgeClass}">${emp.status}</span></td>
+                </tr>`;
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 16px;">No candidates submitted yet</td></tr>';
+            }
+        }
+
+        function initiateOffer() {
+            const client = document.getElementById('emp-client').value;
+            const desig = document.getElementById('emp-designation').value;
+            const templateId = document.getElementById('emp-salary-template').value;
+            
+            if(!client || !desig || !templateId) { alert('Please fill all fields.'); return; }
+
+            // Req #2 — Asset checklist validation
+            const laptop = document.getElementById('asset-laptop').checked;
+            const tools = document.getElementById('asset-tools').checked;
+            const dataCard = document.getElementById('asset-datacard').checked;
+            
+            state.employee.assets = {
+                laptop, tools, dataCard,
+                laptopDetails: document.getElementById('asset-laptop-details').value,
+                toolsDetails: document.getElementById('asset-tools-details').value,
+                dataCardDetails: document.getElementById('asset-datacard-details').value
+            };
+            
+            const template = state.salary_templates.find(t => t.id == parseInt(templateId));
+            
+            // Req #3 — All salary components in one format
+            const salaryFields = ['offer-basic','offer-hra','offer-mobile','offer-conveyance','offer-vda','offer-statbonus','offer-lta','offer-otherallow','offer-special'];
+            const dedFields = ['offer-pf','offer-esic','offer-pt','offer-tds'];
+            
+            const salaryData = {};
+            salaryFields.forEach(f => { salaryData[f.replace('offer-','')] = document.getElementById(f).value; });
+            dedFields.forEach(f => { salaryData[f.replace('offer-','')] = document.getElementById(f).value; });
+
+            const finalSalary = {
+                name: template.name,
+                ...salaryData
+            };
+
+            state.employee.client = client;
+            state.employee.designation = desig;
+            state.employee.salaryTemplate = finalSalary;
+            state.employee.status = 'Offer Sent';
+
+            // Req #4 — Notification to higher management + SPOC
+            const spoc = state.clients.find(c => c.name === client);
+            const spocEmail = spoc ? spoc.email : 'N/A';
+            logNotification('Offer Released — ' + state.employee.name, 'Higher Management, SPOC (' + spocEmail + '), ' + state.employee.email);
+            
+            alert(`✅ Offer sent to ${state.employee.name} (${state.employee.email})\n📧 Notification sent to Higher Management & SPOC (${spocEmail})\n📋 PF: ${state.employee.pfApplicable}\n🔧 Assets: Laptop=${laptop}, Tools=${tools}, DataCard=${dataCard}`);
+            closeModal();
+            renderDynamicData();
+            renderEmployeeSalaryOverview();
+        }
+
+        function submitEmployeeForm() {
+            // Req #5 — Check OTP verified before allowing submit
+            if(!state.employee.emergencyOtpVerified) {
+                alert('⚠️ Please verify your emergency contact via OTP before submitting.');
+                return;
+            }
+            state.employee.emergencyName = document.getElementById('emp-emergency-name').value;
+            state.employee.emergencyPhone = document.getElementById('emp-emergency-phone').value;
+            state.employee.status = 'Form Submitted';
+            alert("Details submitted successfully! Sent to HR Checker.");
+            navigateTo('screen-3');
+        }
+
+        function v1Approve() {
+            state.employee.status = 'Verifier 1 Cleared';
+            alert("Documents Verified. Sent to Level 2.");
+            renderDynamicData();
+        }
+
+        function v2Approve() {
+            state.employee.status = 'Awaiting Joining';
+            alert("Final Approval granted. Awaiting Joining.");
+            renderDynamicData();
+        }
+
+        function spocActivate() {
+            state.employee.status = 'SPOC Activated';
+            state.employee.doj = new Date().toISOString().split('T')[0];
+            alert("Employee Activated. DOJ Confirmed. Notification sent to HR.");
+            renderDynamicData();
+        }
+
+        function hrFinalApprove() {
+            const doj = document.getElementById('doj-input').value;
+            if(!doj) { alert("Please enter Date of Joining"); return; }
+            state.employee.status = 'Active';
+            state.employee.doj = doj;
+            const empCode = 'VRK' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('generated-emp-code').innerText = empCode;
+            alert(`Joining Confirmed! Auto-generated Employee Code: ${empCode}. Data pushed to Payroll.`);
+            renderDynamicData();
+        }
+
+        function verifySalary() {
+            state.employee.status = 'Payroll Active';
+            alert("Salary Confirmed. Employee live in Payroll.");
+            renderDynamicData();
+        }
+
+        function populateExitEmployees() {
+            const sel = document.getElementById('exit-emp-select');
+            if(!sel) return;
+            sel.innerHTML = '<option value="">— Select Active Employee —</option>' + 
+                state.employees_master.map(e => `<option value="${e.id}">${e.empCode} — ${e.name} (${e.client})</option>`).join('');
+        }
+
+        function initiateExit() {
+            const empId = document.getElementById('exit-emp-select').value;
+            const lwd = document.getElementById('exit-lwd').value;
+            const reason = document.getElementById('exit-reason').value;
+            if(!empId || !lwd) return alert("Select an employee and set LWD.");
+            
+            const emp = state.employees_master.find(x => x.id == empId);
+            state.exit_pipeline.push({
+                id: Date.now(),
+                empName: emp.name,
+                empCode: emp.empCode,
+                lwd: lwd,
+                reason: reason,
+                status: 'FnF Pending'
+            });
+            alert(`Exit initiated for ${emp.name}. Recover assets and process FnF.`);
+            renderExitPipeline();
+        }
+
+        function renderExitPipeline() {
+            const tbody = document.getElementById('exit-pipeline-body');
+            if(!tbody) return;
+            if(state.exit_pipeline.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">No offboarding initiated yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            state.exit_pipeline.forEach(ex => {
+                const pendingAssets = state.assets_inventory.filter(a => a.empCode === ex.empCode && a.status === 'Allocated');
+                const assetRecoveryStatus = pendingAssets.length > 0 
+                    ? `<span style="color: var(--danger); font-weight: 500;">${pendingAssets.length} Assets Pending Return</span>`
+                    : `<span style="color: var(--success); font-weight: 500;">All Recovered ✓</span>`;
+
+                tbody.innerHTML += `
+                <tr>
+                    <td>${ex.empCode} — ${ex.empName}</td>
+                    <td>${ex.lwd}</td>
+                    <td>${ex.reason}</td>
+                    <td>${assetRecoveryStatus}</td>
+                    <td><span class="badge ${ex.status === 'FnF Completed' ? 'active' : 'pending'}">${ex.status}</span></td>
+                    <td>
+                        <button class="primary" style="padding: 4px 8px; font-size: 11px;" onclick="completeFnF(${ex.id})">Complete FnF</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function completeFnF(exitId) {
+            const ex = state.exit_pipeline.find(x => x.id === exitId);
+            const pendingAssets = state.assets_inventory.filter(a => a.empCode === ex.empCode && a.status === 'Allocated');
+            if(pendingAssets.length > 0) {
+                alert(`Cannot complete FnF! ${pendingAssets.length} assets are still assigned to this employee. Recover them in Asset Management first.`);
+                return;
+            }
+            if(confirm(`Mark Full & Final settlement as completed for ${ex.empName}?`)) {
+                ex.status = 'FnF Completed';
+                renderExitPipeline();
+            }
+        }
+
+        // Initialize Options
+        window.addEventListener('DOMContentLoaded', () => {
+            renderOfferOptions();
+            renderEmployeeSalaryOverview();
+            syncAuthView();
+
+            const loginForm = document.getElementById('login-form');
+            if(loginForm) {
+                loginForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    handleLogin();
+                });
+            }
+
+            // Close notification dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const dropdown = document.getElementById('notification-dropdown');
+                if(dropdown && dropdown.style.display === 'block') {
+                    dropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+    <!-- UI Structure -->
+    <div id="login-page">
+        <section class="login-panel">
+            <div class="login-brand">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="url(#login-gradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="login-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#4f46e5"></stop>
+                            <stop offset="100%" stop-color="#818cf8"></stop>
+                        </linearGradient>
+                    </defs>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>VRK ERP</span>
+            </div>
+
+            <div class="login-copy">
+                <h1>Sign in to the onboarding workspace.</h1>
+                <p>Access recruitment, onboarding, payroll, asset management, and exit workflows from one prototype entry point.</p>
+            </div>
+
+            <div class="login-card">
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Work Email</label>
+                        <input type="email" id="login-email" placeholder="Enter your work email" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter password" autocomplete="off">
+                    </div>
+                    <div id="login-error" class="login-error"></div>
+                    <button type="submit">Sign In</button>
+                </form>
+
+                <div class="login-demo">
+                    Use your assigned demo account to access the prototype.
+                </div>
+            </div>
+        </section>
+
+        <section class="login-showcase">
+            <div class="showcase-card">
+                <p style="font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; color: rgba(255,255,255,0.72);">Prototype Access</p>
+                <h2 style="font-size: 40px; line-height: 1.05; margin: 14px 0 12px;">One control room for the full employee lifecycle.</h2>
+                <p style="max-width: 520px; font-size: 15px; line-height: 1.7; color: rgba(255,255,255,0.78);">
+                    Move from candidate intake to asset recovery with a single demo environment designed for HR, SPOCs, and administrators.
+                </p>
+
+                <div class="showcase-grid">
+                    <div class="showcase-metric">
+                        <strong>14</strong>
+                        <span>Operational screens already wired into the prototype</span>
+                    </div>
+                    <div class="showcase-metric">
+                        <strong>4</strong>
+                        <span>Core teams covered across HR, client, finance, and admin</span>
+                    </div>
+                    <div class="showcase-metric">
+                        <strong>Live</strong>
+                        <span>Status-driven onboarding states, approvals, and employee actions</span>
+                    </div>
+                    <div class="showcase-metric">
+                        <strong>Demo Ready</strong>
+                        <span>Preloaded sample users and seeded records for walkthroughs</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="app">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="brand">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#4f46e5" />
+                            <stop offset="100%" stop-color="#818cf8" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>VRK ERP</span>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-label">HR Operations</div>
+                <div class="nav-item active" onclick="navigateTo('screen-1')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+                    1a. Recruitment
+                </div>
+                <div class="nav-item" onclick="navigateTo('screen-1b')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    1b. HR Offer Setup
+                </div>
+                <div class="nav-item" onclick="navigateTo('screen-3')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    3. L1 Verification
+                </div>
+                <div class="nav-item" onclick="navigateTo('screen-4')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    4. L2 Approval
+                </div>
+                <div class="nav-item" onclick="navigateTo('screen-6')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    6. HR Final DOJ
+                </div>
+                <div class="nav-item" onclick="navigateTo('screen-1c')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    7. Offboarding & Exit
+                </div>
+
+                <div class="nav-label" style="margin-top: 24px;">Client</div>
+                <div class="nav-item" onclick="navigateTo('screen-5')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    5. SPOC Portal
+                </div>
+                <div class="nav-item" onclick="navigateTo('screen-14')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><polyline points="16 3 12 7 8 3"></polyline></svg>
+                    5b. Asset Management
+                </div>
+
+                <div class="nav-label" style="margin-top: 24px;">Finance</div>
+                <div class="nav-item" onclick="navigateTo('screen-7')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    7. Payroll Entry
+                </div>
+
+                <div class="nav-label" style="margin-top: 24px;">System Admin</div>
+                <div class="nav-item" onclick="navigateTo('screen-8')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                    8. Master Data
+                </div>
+
+                <div class="nav-label" style="margin-top: 24px;">Reports</div>
+                <div class="nav-item" onclick="navigateTo('screen-13')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    9. Summary Reports
+                </div>
+
+                <div class="nav-label" style="margin-top: 24px;">External (Demo)</div>
+                <div class="nav-item" onclick="navigateTo('screen-2')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    2. Employee Link
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main>
+            <header>
+                <div>
+                    <h2 style="margin:0;">Dashboard</h2>
+                    <span style="font-size: 12px; color: var(--text-muted);">Master Data & Onboarding Module</span>
+                </div>
+                <div style="display: flex; gap: 24px; align-items: center;">
+                    <!-- Notification Bell -->
+                    <div style="position: relative; cursor: pointer;" onclick="document.getElementById('notification-dropdown').style.display = document.getElementById('notification-dropdown').style.display === 'none' ? 'block' : 'none'; event.stopPropagation();">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted); margin-top: 4px;">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span style="position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid white;"></span>
+                        
+                        <!-- Notification Dropdown -->
+                        <div id="notification-dropdown" style="display: none; position: absolute; right: -10px; top: 36px; width: 340px; background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid var(--border); z-index: 1000; overflow: hidden; cursor: default;" onclick="event.stopPropagation()">
+                            <div style="padding: 16px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 15px;">Notifications</div>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; align-items: flex-start; background: #f8fafc;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 6px; flex-shrink: 0;"></div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 500; margin-bottom: 4px;">Recruitment Submitted</div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Jane Doe details sent to HR for offer structuring.</div>
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">2 mins ago</div>
+                                    </div>
+                                </div>
+                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; align-items: flex-start;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); margin-top: 6px; flex-shrink: 0;"></div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 500; margin-bottom: 4px;">HR Generated Offer</div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Offer sent to Vijay Kumar Garg.</div>
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">1 hr ago</div>
+                                    </div>
+                                </div>
+                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; align-items: flex-start;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); margin-top: 6px; flex-shrink: 0;"></div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 500; margin-bottom: 4px;">Employee Onboarding Form Filled</div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Jayesh Gharat has completed step 2 form.</div>
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">3 hrs ago</div>
+                                    </div>
+                                </div>
+                                <div style="padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); margin-top: 6px; flex-shrink: 0;"></div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 500; margin-bottom: 4px;">SPOC Confirmed DOJ</div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Asset LAP-002 allocated to Jayesh Gharat.</div>
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">1 day ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="padding: 12px; text-align: center; border-top: 1px solid var(--border); font-size: 13px; color: var(--primary); cursor: pointer; font-weight: 500;" onclick="document.getElementById('notification-dropdown').style.display='none';">Mark all as read</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div style="text-align: right;">
+                            <div id="header-user-name" style="font-size: 14px; font-weight: 500;">Admin User</div>
+                            <div id="header-user-role" style="font-size: 11px; color: var(--text-muted);">System Administrator</div>
+                        </div>
+                        <div id="header-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">AU</div>
+                        <button class="secondary" style="padding: 8px 14px;" onclick="logout()">Sign Out</button>
+                    </div>
+                </div>
+                 </header>
+
+            <!-- Screen 1: Recruitment Dashboard -->
+            <div id="screen-1" class="screen active">
+                <h1>Recruitment Dashboard</h1>
+                <p class="subtitle">Submit new candidate details to HR for offer structuring.</p>
+
+                <div class="card">
+                    <h2>Submit New Candidate</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Candidate Name</label>
+                            <input type="text" id="rec-name" placeholder="E.g. Jane Doe" value="Jane Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="rec-email" placeholder="jane@example.com" value="jane@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="rec-phone" placeholder="E.g. 9876543210" value="9876543210">
+                        </div>
+                        <div class="form-group">
+                            <label>Proposed CTC (Annual ₹)</label>
+                            <input type="text" id="rec-ctc" placeholder="E.g. 5,00,000" value="5,00,000">
+                        </div>
+                        <div class="form-group">
+                            <label>PF Applicability <span style="color: var(--danger);">*</span></label>
+                            <select id="rec-pf-tag">
+                                <option value="">— Select PF Tag —</option>
+                                <option value="With PF">With PF</option>
+                                <option value="Without PF">Without PF</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Remarks</label>
+                            <input type="text" id="rec-remarks" placeholder="Optional comments">
+                        </div>
+                    </div>
+                    <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+                        <button onclick="recruitmentSubmit()">Send to HR →</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Submitted Candidates</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Proposed CTC</th>
+                                <th>PF Tag</th>
+                                <th>Remarks</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rec-table-body">
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 16px;">No candidates submitted yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Screen 1b: HR Offer Setup -->
+            <div id="screen-1b" class="screen">
+                <h1>HR Offer Setup</h1>
+                <p class="subtitle">Review candidate from Recruitment, decide salary structure, and send offer.</p>
+
+                <div class="card" style="margin-bottom: 20px;">
+                    <h2>Candidates from Recruitment</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Proposed CTC</th>
+                                <th>PF Tag</th>
+                                <th>Remarks</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hr-candidate-tbody">
+                            <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">No candidates pending. Waiting for Recruitment to submit.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Req #4 — Notification Log -->
+                <div class="card">
+                    <h2 style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        Offer Notification Log
+                    </h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event</th>
+                                <th>Notified To</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notification-log-body">
+                            <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 16px;">No notifications sent yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Screen 1c: Offboarding / Exit -->
+            <div id="screen-1c" class="screen">
+                <h1>Employee Offboarding & Exit</h1>
+                <p class="subtitle">Manage employee separations, asset returns, and full & final settlement.</p>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h2>Initiate Offboarding</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Employee to Exit</label>
+                            <select id="exit-emp-select">
+                                <option value="">— Select Active Employee —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Working Day (LWD)</label>
+                            <input type="date" id="exit-lwd">
+                        </div>
+                        <div class="form-group">
+                            <label>Reason for Exit</label>
+                            <select id="exit-reason">
+                                <option value="Resignation">Resignation</option>
+                                <option value="Termination">Termination</option>
+                                <option value="Absconding">Absconding</option>
+                                <option value="End of Contract">End of Contract</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Remarks</label>
+                            <input type="text" id="exit-remarks" placeholder="Optional comments">
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                        <button class="danger" onclick="initiateExit()">Initiate Exit Process</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Exit Pipeline</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>LWD</th>
+                                <th>Reason</th>
+                                <th>Asset Recovery</th>
+                                <th>FnF Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exit-pipeline-body">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">No offboarding initiated yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Screen 2: Employee Self-Fill Form -->
+            <div id="screen-2" class="screen" style="padding: 0; background-color: var(--surface); height: 100vh; overflow-y: auto;">
+                <div class="top-status-bar">
+                    <div>Welcome to VRK Onboarding</div>
+                    <div>Need help? contact@vrk.com</div>
+                </div>
+                
+                <div style="max-width: 800px; margin: 40px auto; padding: 0 20px;">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <h1 style="font-size: 28px; color: var(--primary);">Complete Your Profile</h1>
+                        <p style="color: var(--text-muted);">Please provide your details to finalize your onboarding with Samsung.</p>
+                    </div>
+
+
+                    <!-- Offer & Salary Overview Card -->
+                    <div class="card" style="margin-bottom: 32px; background-color: #f8fafc;">
+                        <h2 style="font-size: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Your Offer Overview</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;" id="emp-offer-overview">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="stepper">
+                        <div class="step active">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Personal</div>
+                        </div>
+                        <div class="step active">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Emergency</div>
+                        </div>
+                        <div class="step active">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">KYC</div>
+                        </div>
+                        <div class="step active">
+                            <div class="step-circle">4</div>
+                            <div class="step-label">Bank</div>
+                        </div>
+                        <div class="step active">
+                            <div class="step-circle">5</div>
+                            <div class="step-label">Documents</div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border: 1px solid var(--border); box-shadow: none; margin-bottom: 24px;">
+                        <h2>1. Personal Details</h2>
+                        <div class="form-grid">
+                            <div class="form-group"><label>First Name</label><input type="text" value="Jane"></div>
+                            <div class="form-group"><label>Last Name</label><input type="text" value="Doe"></div>
+                            <div class="form-group"><label>Date of Birth</label><input type="date" value="1995-05-15"></div>
+                            <div class="form-group"><label>Blood Group</label><select><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></div>
+                            <div class="form-group"><label>Mobile Number</label><input type="text" value="9876543210"></div>
+                            <div class="form-group" style="grid-column: span 2;"><label>Full Address</label><input type="text" value="123 Example Street, Mumbai, Maharashtra 400001"></div>
+                        </div>
+                    </div>
+
+                    <!-- Req #5 — Emergency Contact with OTP -->
+                    <div class="card" style="border: 1px solid var(--border); box-shadow: none; margin-bottom: 24px;">
+                        <h2 style="display: flex; align-items: center; gap: 8px;">
+                            2. Emergency Contact
+                            <span id="otp-verified-badge" style="display: none; background: #d1fae5; color: #047857; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; align-items: center; gap: 4px;">
+                                ✓ Verified
+                            </span>
+                        </h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">OTP will be sent to your emergency contact for verification.</p>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Emergency Contact Name <span style="color: var(--danger);">*</span></label>
+                                <input type="text" id="emp-emergency-name" placeholder="E.g. Rahul Kumar" value="Rahul Kumar">
+                            </div>
+                            <div class="form-group">
+                                <label>Emergency Contact Phone <span style="color: var(--danger);">*</span></label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="tel" id="emp-emergency-phone" placeholder="E.g. 9988776655" value="9988776655" style="flex: 1;">
+                                    <button type="button" onclick="sendEmergencyOtp()" style="white-space: nowrap; padding: 8px 16px; font-size: 13px;">Send OTP</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="otp-sent-msg" style="display: none; margin-top: 12px; padding: 8px 12px; background: #fef3c7; color: #b45309; border-radius: 6px; font-size: 13px;">
+                            📩 OTP has been sent to the emergency contact number.
+                        </div>
+                        <div id="otp-section" style="display: none; margin-top: 16px; gap: 8px; align-items: flex-end;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Enter OTP</label>
+                                <input type="text" id="emp-otp-input" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 18px; text-align: center;">
+                            </div>
+                            <button type="button" class="success" onclick="verifyEmergencyOtp()" style="margin-bottom: 0; height: 42px;">Verify OTP</button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border: 1px solid var(--border); box-shadow: none; margin-bottom: 24px;">
+                        <h2>3. KYC Details</h2>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Aadhaar Number</label><input type="text" placeholder="12 digits" value="1234 5678 9012"></div>
+                            <div class="form-group"><label>PAN Number</label><input type="text" placeholder="ABCDE1234F" value="ABCDE1234F"></div>
+                            <div class="form-group"><label>UAN Number</label><input type="text" placeholder="12 digits" value="100904319456"></div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border: 1px solid var(--border); box-shadow: none; margin-bottom: 24px;">
+                        <h2>4. Bank Details</h2>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Bank Name</label><input type="text" placeholder="E.g. HDFC Bank" value="HDFC Bank"></div>
+                            <div class="form-group"><label>Account Number</label><input type="text" placeholder="Account No" value="50100234567890"></div>
+                            <div class="form-group"><label>IFSC Code</label><input type="text" placeholder="IFSC Code" value="HDFC0001234"></div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border: 1px solid var(--border); box-shadow: none;">
+                        <h2>5. Upload Documents</h2>
+                        <p class="subtitle">Please upload clear copies of the following mandatory documents.</p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div style="border: 1px dashed var(--border); padding: 20px; border-radius: 8px; text-align: center; background: #f9fafb;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <div><span style="color: var(--primary); font-weight: 500; cursor: pointer;">Click to upload</span> Aadhaar Card (Front & Back)</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">PDF, JPG, PNG up to 5MB</div>
+                            </div>
+                            <div style="border: 1px dashed var(--border); padding: 20px; border-radius: 8px; text-align: center; background: #f9fafb;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <div><span style="color: var(--primary); font-weight: 500; cursor: pointer;">Click to upload</span> PAN Card</div>
+                            </div>
+                            <div style="border: 1px dashed var(--border); padding: 20px; border-radius: 8px; text-align: center; background: #f9fafb;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <div><span style="color: var(--primary); font-weight: 500; cursor: pointer;">Click to upload</span> Bank Passbook / Cancelled Cheque</div>
+                            </div>
+                            <div style="border: 1px dashed var(--border); padding: 20px; border-radius: 8px; text-align: center; background: #f9fafb;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <div><span style="color: var(--primary); font-weight: 500; cursor: pointer;">Click to upload</span> Signature</div>
+                            </div>
+                            <div style="border: 1px dashed var(--border); padding: 20px; border-radius: 8px; text-align: center; background: #f9fafb;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <div><span style="color: var(--primary); font-weight: 500; cursor: pointer;">Click to upload</span> Passport Size Photo</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 24px; display: flex; justify-content: space-between;">
+                            <button class="secondary">Back</button>
+                            <button onclick="submitEmployeeForm()">Submit Application</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 3: Verifier 1 -->
+            <div id="screen-3" class="screen">
+                <h1>L1 Document Verification (HR Checker)</h1>
+                <p class="subtitle">Review submitted forms and verify documents.</p>
+
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                        <div>
+                            <h2 style="margin: 0;">Jane Doe - L1 Verification</h2>
+                            <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">Status: <span class="dyn-status"><span class="badge draft">Not Initiated</span></span></div>
+                        </div>
+                        <div id="v1-actions" style="display: none; gap: 8px;">
+                            <button class="success" onclick="v1Approve()">Verify All & Forward</button>
+                            <button class="danger">Flag Issue</button>
+                        </div>
+                        <div id="v1-pending" style="font-size: 14px; color: var(--warning); font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Awaiting Form Submission
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 24px;">
+                        <!-- Details Column -->
+                        <div>
+                            <div style="margin-bottom: 24px;">
+                                <h3 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">Personal Details</h3>
+                                <div style="display: grid; grid-template-columns: 120px 1fr; gap: 12px; font-size: 14px;">
+                                    <div style="color: var(--text-muted);">Name:</div> <div>Jane Doe</div>
+                                    <div style="color: var(--text-muted);">DOB:</div> <div>15 May 1995</div>
+                                    <div style="color: var(--text-muted);">Blood Group:</div> <div>O+</div>
+                                    <div style="color: var(--text-muted);">Mobile:</div> <div>+91 9876543210</div>
+                                    <div style="color: var(--text-muted);">Email:</div> <div>jane@example.com</div>
+                                    <div style="color: var(--text-muted);">Address:</div> <div>123 Example Street, Mumbai, MH</div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 24px;">
+                                <h3 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">KYC & Bank Details</h3>
+                                <div style="display: grid; grid-template-columns: 120px 1fr; gap: 12px; font-size: 14px;">
+                                    <div style="color: var(--text-muted);">Aadhaar:</div> <div>1234 5678 9012</div>
+                                    <div style="color: var(--text-muted);">PAN:</div> <div>ABCDE1234F</div>
+                                    <div style="color: var(--text-muted);">UAN:</div> <div>100904319456</div>
+                                    <div style="color: var(--text-muted);">Bank Name:</div> <div>HDFC Bank</div>
+                                    <div style="color: var(--text-muted);">Account No:</div> <div>50100234567890</div>
+                                    <div style="color: var(--text-muted);">IFSC:</div> <div>HDFC0001234</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documents Column -->
+                        <div>
+                            <h3 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">Uploaded Documents</h3>
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Aadhaar Card <span style="color: var(--warning); font-size: 12px;">(Pending Verification)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=Aadhaar+Card+Front+%26+Back" style="width: 100%; height: 100%; object-fit: cover;" alt="Aadhaar">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">PAN Card <span style="color: var(--warning); font-size: 12px;">(Pending Verification)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=PAN+Card+Image" style="width: 100%; height: 100%; object-fit: cover;" alt="PAN">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Bank Passbook / Cheque <span style="color: var(--warning); font-size: 12px;">(Pending Verification)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=Bank+Document" style="width: 100%; height: 100%; object-fit: cover;" alt="Bank">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Signature <span style="color: var(--warning); font-size: 12px;">(Pending Verification)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=Signature" style="width: 100%; height: 100%; object-fit: cover;" alt="Signature">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Passport Size Photo <span style="color: var(--warning); font-size: 12px;">(Pending Verification)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/300x400.png?text=Photo" style="height: 100%; object-fit: cover;" alt="Photo">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 4: Verifier 2 -->
+            <div id="screen-4" class="screen">
+                <h1>L2 Final Approval (HR Superior)</h1>
+                <p class="subtitle">Final review of L1 cleared records.</p>
+
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                        <div>
+                            <h2 style="margin: 0;">Jane Doe - Full Record Review</h2>
+                            <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">Status: <span class="dyn-status"><span class="badge draft">Not Initiated</span></span></div>
+                        </div>
+                        <div id="v2-actions" style="display: none; gap: 8px;">
+                            <button class="success" onclick="v2Approve()">Approve Record</button>
+                            <button class="danger">Send Back to L1</button>
+                        </div>
+                        <div id="v2-pending" style="font-size: 14px; color: var(--warning); font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Awaiting L1 Clearance
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 24px;">
+                        <!-- Details Column -->
+                        <div>
+                            <div style="margin-bottom: 24px;">
+                                <h3 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">Personal Details</h3>
+                                <div style="display: grid; grid-template-columns: 120px 1fr; gap: 12px; font-size: 14px;">
+                                    <div style="color: var(--text-muted);">Name:</div> <div>Jane Doe</div>
+                                    <div style="color: var(--text-muted);">DOB:</div> <div>15 May 1995</div>
+                                    <div style="color: var(--text-muted);">Blood Group:</div> <div>O+</div>
+                                    <div style="color: var(--text-muted);">Mobile:</div> <div>+91 9876543210</div>
+                                    <div style="color: var(--text-muted);">Email:</div> <div>jane@example.com</div>
+                                    <div style="color: var(--text-muted);">Address:</div> <div>123 Example Street, Mumbai, MH</div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 24px;">
+                                <h3 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">KYC & Bank Details</h3>
+                                <div style="display: grid; grid-template-columns: 120px 1fr; gap: 12px; font-size: 14px;">
+                                    <div style="color: var(--text-muted);">Aadhaar:</div> <div style="display: flex; align-items: center; gap: 6px;">1234 5678 9012 <span style="color: var(--secondary); font-weight: bold;">✓</span></div>
+                                    <div style="color: var(--text-muted);">PAN:</div> <div style="display: flex; align-items: center; gap: 6px;">ABCDE1234F <span style="color: var(--secondary); font-weight: bold;">✓</span></div>
+                                    <div style="color: var(--text-muted);">UAN:</div> <div style="display: flex; align-items: center; gap: 6px;">100904319456 <span style="color: var(--secondary); font-weight: bold;">✓</span></div>
+                                    <div style="color: var(--text-muted);">Bank Name:</div> <div>HDFC Bank</div>
+                                    <div style="color: var(--text-muted);">Account No:</div> <div>50100234567890</div>
+                                    <div style="color: var(--text-muted);">IFSC:</div> <div>HDFC0001234</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documents Column -->
+                        <div>
+                            <h3 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">Uploaded Documents</h3>
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Aadhaar Card <span style="color: var(--secondary); font-size: 12px;">(Verified by L1)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=Aadhaar+Card+Front+%26+Back" style="width: 100%; height: 100%; object-fit: cover;" alt="Aadhaar">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">PAN Card <span style="color: var(--secondary); font-size: 12px;">(Verified by L1)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=PAN+Card+Image" style="width: 100%; height: 100%; object-fit: cover;" alt="PAN">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Bank Passbook / Cheque <span style="color: var(--secondary); font-size: 12px;">(Verified by L1)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=Bank+Document" style="width: 100%; height: 100%; object-fit: cover;" alt="Bank">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Signature <span style="color: var(--secondary); font-size: 12px;">(Verified by L1)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/600x300.png?text=Signature" style="width: 100%; height: 100%; object-fit: cover;" alt="Signature">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Passport Size Photo <span style="color: var(--secondary); font-size: 12px;">(Verified by L1)</span></div>
+                                    <div style="width: 100%; height: 160px; background: #e5e7eb; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="https://via.placeholder.com/300x400.png?text=Photo" style="height: 100%; object-fit: cover;" alt="Photo">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 5: SPOC Portal -->
+            <div id="screen-5" class="screen">
+                <h1>Client SPOC Portal</h1>
+                <p class="subtitle">Manage deployments, confirm joinings, and allocate assets to employees.</p>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2>Samsung Deployed Resources</h2>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button onclick="spocAllocateAsset()" style="padding: 8px 16px; font-size: 13px; background: #6366f1;">🔧 Manage Assets</button>
+                            <span class="badge active" style="font-size: 14px; padding: 6px 16px;">Total Active: 142</span>
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Resource Name</th>
+                                <th>Designation</th>
+                                <th>Site Location</th>
+                                <th>Assets</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Jane Doe</td>
+                                <td>Field Engineer</td>
+                                <td>Mumbai NHQ</td>
+                                <td>
+                                    <div style="display: flex; gap: 4px; flex-wrap: wrap;" id="spoc-jane-assets">
+                                        <span style="font-size: 11px; color: var(--text-muted);">None assigned</span>
+                                    </div>
+                                </td>
+                                <td class="dyn-status"><span class="badge draft">Not Initiated</span></td>
+                                <td>
+                                    <div style="display: flex; gap: 4px;">
+                                        <div id="spoc-actions" style="display: none;">
+                                            <button class="success" style="padding: 6px 12px; font-size: 12px;" onclick="spocActivate()">Confirm DOJ</button>
+                                        </div>
+                                        <button id="spoc-allocate-btn" style="display: none; padding: 6px 12px; font-size: 11px; background: #6366f1;" onclick="spocAllocateAsset()">Allocate Asset</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Vijay Kumar Garg</td>
+                                <td>Technical Support</td>
+                                <td>Gurgaon NHQ</td>
+                                <td>
+                                    <span class="badge review" style="font-size: 10px;">LAP-001</span>
+                                </td>
+                                <td><span class="badge active">Active</span></td>
+                                <td><span style="font-size: 12px; color: var(--text-muted);">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Jayesh Gharat</td>
+                                <td>Project Control Staff</td>
+                                <td>Mumbai NHQ</td>
+                                <td>
+                                    <span class="badge review" style="font-size: 10px;">LAP-002</span>
+                                </td>
+                                <td><span class="badge active">Active</span></td>
+                                <td><span style="font-size: 12px; color: var(--text-muted);">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Screen 6: HR Final Approval -->
+            <div id="screen-6" class="screen">
+                <h1>HR Final Activation</h1>
+                <p class="subtitle">Confirm SPOC activations to push data to payroll.</p>
+
+                <div class="card">
+                    <h2>Pending Activations</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Client</th>
+                                <th>DOJ Confirmed By</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Jane Doe</td>
+                                <td>Samsung</td>
+                                <td>Client SPOC</td>
+                                <td class="dyn-status"><span class="badge draft">Not Initiated</span></td>
+                                <td>
+                                    <div id="hr-actions" style="display: none; align-items: center; gap: 8px;">
+                                        <input type="date" id="doj-input" style="padding: 6px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border);">
+                                        <button class="primary" style="padding: 6px 12px; font-size: 12px;" onclick="hrFinalApprove()">Activate</button>
+                                    </div>
+                                    <div id="hr-active-state" style="display: none; font-size: 12px;">
+                                        <span style="color: var(--text-muted);">Emp Code: </span><strong style="color: var(--primary);" id="generated-emp-code"></strong>
+                                    </div>
+                                    <div id="hr-pending" style="font-size: 12px; color: var(--text-muted);">Awaiting SPOC</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Screen 7: Payroll Entry -->
+            <div id="screen-7" class="screen">
+                <h1>Payroll Module</h1>
+                <p class="subtitle">Verify salary structures before first payroll run.</p>
+
+                <div class="card">
+                    <h2>New Additions</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Template</th>
+                                <th>CTC (Gross)</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Jane Doe</td>
+                                <td>Samsung Standard</td>
+                                <td>₹5,00,000</td>
+                                <td class="dyn-status"><span class="badge draft">Not Initiated</span></td>
+                                <td>
+                                    <div id="payroll-actions" style="display: none;">
+                                        <button class="success" style="padding: 6px 12px; font-size: 12px;" onclick="verifySalary()">Confirm Salary</button>
+                                    </div>
+                                    <span style="font-size: 12px; color: var(--text-muted);">N/A</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Screen 8: Master Data -->
+            <div id="screen-8" class="screen">
+                <h1>Master Data Management</h1>
+                <p class="subtitle">Single source of truth for all modules.</p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+                    <!-- Employee Master -->
+                    <div class="card" style="margin-bottom: 0;">
+                        <h2 style="font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                            Employee Master
+                        </h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Central repository of all active and inactive employees.</p>
+                        <button class="secondary" style="width: 100%;" onclick="navigateTo('screen-10')">Manage Employees</button>
+                    </div>
+
+                    <!-- Client Master -->
+                    <div class="card" style="margin-bottom: 0;">
+                        <h2 style="font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                            Client & Site Master
+                        </h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Manage billing clients, SPOC details, and deployed sites.</p>
+                        <button class="secondary" style="width: 100%;" onclick="navigateTo('screen-9')">Manage Clients</button>
+                    </div>
+
+                    <!-- Salary Master -->
+                    <div class="card" style="margin-bottom: 0;">
+                        <h2 style="font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            Salary Structure Master
+                        </h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Client-specific templates, earnings, and deductions.</p>
+                        <button class="secondary" style="width: 100%;" onclick="navigateTo('screen-11')">Manage Templates</button>
+                    </div>
+
+                    <!-- Statutory Master -->
+                    <div class="card" style="margin-bottom: 0;">
+                        <h2 style="font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
+                            Statutory & Document Master
+                        </h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">PF, ESIC rules, TDS regimes, and required documents.</p>
+                        <button class="secondary" style="width: 100%;" onclick="navigateTo('screen-12')">Statutory Rules</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 9: Client Master CRUD -->
+            <div id="screen-9" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h1>Client Master</h1>
+                        <p class="subtitle">Manage billing clients and SPOCs.</p>
+                    </div>
+                    <button class="secondary" onclick="navigateTo('screen-8')">← Back to Master Data</button>
+                </div>
+
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2>Client List</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Client Name</th>
+                                <th>SPOC Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="client-table-body">
+                            <!-- populated by js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h2>Add / Edit Client</h2>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <div class="form-group"><label>Client Name</label><input type="text" id="client-name" placeholder="e.g. Samsung"></div>
+                        <div class="form-group"><label>SPOC Name</label><input type="text" id="client-spoc" placeholder="e.g. Rahul Sharma"></div>
+                        <div class="form-group"><label>SPOC Email</label><input type="text" id="client-email" placeholder="rahul@example.com"></div>
+                    </div>
+                    <button class="primary" style="margin-top: 16px;" onclick="saveClient()">Save Client</button>
+                </div>
+            </div>
+
+            <!-- Screen 10: Employee Master CRUD -->
+            <div id="screen-10" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div><h1>Employee Master</h1><p class="subtitle">Global repository of all employees.</p></div>
+                    <button class="secondary" onclick="navigateTo('screen-8')">← Back to Master Data</button>
+                </div>
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2>Employee List</h2>
+                    <table>
+                        <thead><tr><th>Emp Code</th><th>Name</th><th>Designation</th><th>Client</th><th>Action</th></tr></thead>
+                        <tbody id="emp-table-body"></tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h2>Add / Edit Employee</h2>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                        <div class="form-group"><label>Emp Code</label><input type="text" id="emp-m-code" placeholder="VRK1001"></div>
+                        <div class="form-group"><label>Name</label><input type="text" id="emp-m-name" placeholder="John Smith"></div>
+                        <div class="form-group"><label>Designation</label><input type="text" id="emp-m-desig" placeholder="Technician"></div>
+                        <div class="form-group"><label>Client</label><input type="text" id="emp-m-client" placeholder="Samsung"></div>
+                    </div>
+                    <button class="primary" style="margin-top: 16px;" onclick="saveEmp()">Save Employee</button>
+                </div>
+            </div>
+
+            <!-- Screen 11: Salary Structure CRUD -->
+            <div id="screen-11" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div><h1>Salary Structure Master</h1><p class="subtitle">Manage templates for payroll.</p></div>
+                    <button class="secondary" onclick="navigateTo('screen-8')">← Back to Master Data</button>
+                </div>
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2>Template List</h2>
+                    <table>
+                        <thead><tr><th>Template Name</th><th>Basic %</th><th>HRA %</th><th>Special %</th><th>Action</th></tr></thead>
+                        <tbody id="salary-table-body"></tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h2>Add / Edit Template</h2>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                        <div class="form-group"><label>Template Name</label><input type="text" id="sal-name" placeholder="Standard Grade A"></div>
+                        <div class="form-group"><label>Basic %</label><input type="text" id="sal-basic" placeholder="50%"></div>
+                        <div class="form-group"><label>HRA %</label><input type="text" id="sal-hra" placeholder="20%"></div>
+                        <div class="form-group"><label>Special %</label><input type="text" id="sal-special" placeholder="30%"></div>
+                    </div>
+                    <button class="primary" style="margin-top: 16px;" onclick="saveSalary()">Save Template</button>
+                </div>
+            </div>
+
+            <!-- Screen 12: Statutory Rules CRUD -->
+            <div id="screen-12" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div><h1>Statutory Rules Master</h1><p class="subtitle">Manage PF, ESIC, and TDS rules.</p></div>
+                    <button class="secondary" onclick="navigateTo('screen-8')">← Back to Master Data</button>
+                </div>
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2>Rule List</h2>
+                    <table>
+                        <thead><tr><th>Rule Name</th><th>Description</th><th>Value/Percentage</th><th>Action</th></tr></thead>
+                        <tbody id="stat-table-body"></tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h2>Add / Edit Rule</h2>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <div class="form-group"><label>Rule Name</label><input type="text" id="stat-name" placeholder="PF Employer"></div>
+                        <div class="form-group"><label>Description</label><input type="text" id="stat-desc" placeholder="Provident Fund Contribution"></div>
+                        <div class="form-group"><label>Value</label><input type="text" id="stat-val" placeholder="12%"></div>
+                    </div>
+                    <button class="primary" style="margin-top: 16px;" onclick="saveStat()">Save Rule</button>
+                </div>
+            </div>
+
+            <!-- Screen 13: Summary Reports — Req #6 -->
+            <div id="screen-13" class="screen">
+                <h1>Summary Reports</h1>
+                <p class="subtitle">Client-wise and SPOC-wise summary of all employees and onboarding status.</p>
+
+                <!-- Client-Wise Summary -->
+                <div class="card">
+                    <h2 style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        Client-Wise Summary
+                    </h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Total Employees</th>
+                                <th>Active</th>
+                                <th>Onboarding</th>
+                                <th>PF Employees</th>
+                                <th>Without PF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="font-weight: 500;">Samsung</td><td>48</td><td><span class="badge active">42</span></td><td><span class="badge pending">6</span></td><td>38</td><td>10</td></tr>
+                            <tr><td style="font-weight: 500;">Ericsson</td><td>22</td><td><span class="badge active">20</span></td><td><span class="badge pending">2</span></td><td>22</td><td>0</td></tr>
+                            <tr><td style="font-weight: 500;">Vedang</td><td>35</td><td><span class="badge active">33</span></td><td><span class="badge pending">2</span></td><td>28</td><td>7</td></tr>
+                            <tr><td style="font-weight: 500;">TCTS</td><td>15</td><td><span class="badge active">14</span></td><td><span class="badge pending">1</span></td><td>15</td><td>0</td></tr>
+                            <tr><td style="font-weight: 500;">Orange</td><td>8</td><td><span class="badge active">8</span></td><td><span class="badge draft">0</span></td><td>8</td><td>0</td></tr>
+                            <tr><td style="font-weight: 500;">IBM</td><td>5</td><td><span class="badge active">4</span></td><td><span class="badge pending">1</span></td><td>5</td><td>0</td></tr>
+                            <tr><td style="font-weight: 500;">Nokia (GCS)</td><td>12</td><td><span class="badge active">11</span></td><td><span class="badge pending">1</span></td><td>12</td><td>0</td></tr>
+                            <tr style="background: #f9fafb; font-weight: 600;">
+                                <td>Total</td><td>145</td><td>132</td><td>13</td><td>128</td><td>17</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SPOC-Wise Summary -->
+                <div class="card">
+                    <h2 style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        SPOC-Wise Summary
+                    </h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>SPOC Name</th>
+                                <th>Client</th>
+                                <th>Managed Employees</th>
+                                <th>Pending Activations</th>
+                                <th>Assets Issued</th>
+                                <th>Last Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="font-weight: 500;">Rajesh Menon</td><td>Samsung</td><td>48</td><td><span class="badge pending">6</span></td><td>42</td><td>30 May 2026</td></tr>
+                            <tr><td style="font-weight: 500;">Priya Sharma</td><td>Ericsson</td><td>22</td><td><span class="badge pending">2</span></td><td>20</td><td>28 May 2026</td></tr>
+                            <tr><td style="font-weight: 500;">Suresh Patel</td><td>Vedang</td><td>35</td><td><span class="badge pending">2</span></td><td>30</td><td>29 May 2026</td></tr>
+                            <tr><td style="font-weight: 500;">Amit Joshi</td><td>TCTS</td><td>15</td><td><span class="badge pending">1</span></td><td>14</td><td>27 May 2026</td></tr>
+                            <tr><td style="font-weight: 500;">Deepak Nair</td><td>Orange</td><td>8</td><td><span class="badge draft">0</span></td><td>8</td><td>25 May 2026</td></tr>
+                            <tr><td style="font-weight: 500;">Rohan Desai</td><td>IBM</td><td>5</td><td><span class="badge pending">1</span></td><td>4</td><td>26 May 2026</td></tr>
+                            <tr><td style="font-weight: 500;">Vikram Singh</td><td>Nokia (GCS)</td><td>12</td><td><span class="badge pending">1</span></td><td>11</td><td>30 May 2026</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quick Stats -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                    <div class="card" style="text-align: center; margin-bottom: 0;">
+                        <div style="font-size: 32px; font-weight: 700; color: var(--primary);">145</div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Total Employees</div>
+                    </div>
+                    <div class="card" style="text-align: center; margin-bottom: 0;">
+                        <div style="font-size: 32px; font-weight: 700; color: var(--secondary);">132</div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Active</div>
+                    </div>
+                    <div class="card" style="text-align: center; margin-bottom: 0;">
+                        <div style="font-size: 32px; font-weight: 700; color: var(--warning);">13</div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">In Onboarding</div>
+                    </div>
+                    <div class="card" style="text-align: center; margin-bottom: 0;">
+                        <div style="font-size: 32px; font-weight: 700; color: #6366f1;">7</div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Active SPOCs</div>
+                    </div>
+                    </div>
+                </div>
+
+            <!-- Screen 14: Asset Management -->
+            <div id="screen-14" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div><h1>Asset Management</h1><p class="subtitle">Track and allocate laptops, tools, and data cards.</p></div>
+                    <div style="display: flex; gap: 12px;">
+                        <div class="card" style="margin-bottom: 0; padding: 8px 16px; display: flex; align-items: center; gap: 8px;"><span style="font-size: 12px; color: var(--text-muted);">Total:</span><strong id="asset-stat-total">0</strong></div>
+                        <div class="card" style="margin-bottom: 0; padding: 8px 16px; display: flex; align-items: center; gap: 8px;"><span style="font-size: 12px; color: var(--text-muted);">Allocated:</span><strong id="asset-stat-allocated" style="color: var(--primary);">0</strong></div>
+                        <div class="card" style="margin-bottom: 0; padding: 8px 16px; display: flex; align-items: center; gap: 8px;"><span style="font-size: 12px; color: var(--text-muted);">Available:</span><strong id="asset-stat-available" style="color: var(--secondary);">0</strong></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2>Inventory List</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Asset Code</th>
+                                <th>Type</th>
+                                <th>Brand / Model</th>
+                                <th>Serial No.</th>
+                                <th>Assigned To</th>
+                                <th>Client</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asset-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2>Asset Transfer Log</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Asset Code</th>
+                                <th>Transferred From</th>
+                                <th>Transferred To</th>
+                                <th>Date</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transfer-log-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h2>Add / Edit Asset</h2>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <div class="form-group"><label>Asset Code</label><input type="text" id="asset-code-input" placeholder="e.g. LAP-005"></div>
+                        <div class="form-group">
+                            <label>Asset Type</label>
+                            <select id="asset-type-input">
+                                <option value="Laptop">Laptop</option>
+                                <option value="Tools Kit">Tools Kit</option>
+                                <option value="Data Card">Data Card</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Brand / Model</label><input type="text" id="asset-brand-input" placeholder="e.g. Dell Latitude"></div>
+                        <div class="form-group"><label>Serial Number</label><input type="text" id="asset-serial-input" placeholder="e.g. SN-12345"></div>
+                        <div class="form-group"><label>Client Pool</label><input type="text" id="asset-client-input" placeholder="e.g. Samsung"></div>
+                    </div>
+                    <button class="primary" style="margin-top: 16px;" onclick="saveAsset()">Save Asset</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+<!-- Modal Overlay for HR Offer Setup (outside #app for proper fixed positioning) -->
+<div id="offer-modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeModal()">
+    <div class="modal-card" id="hr-offer-form" style="max-width: 780px;">
+        <div class="modal-header">
+            <div>
+                <h2 style="margin: 0;">Define Salary Structure for <span id="hr-selected-name" style="color: var(--primary);"></span></h2>
+                <div style="margin-top: 6px; font-size: 13px; color: var(--text-muted);">PF Status: <strong id="modal-pf-info" style="color: var(--primary);">—</strong></div>
+            </div>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+
+        <!-- Section 1: Role & Template -->
+        <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Role & Template Selection</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Client</label>
+                    <select id="emp-client"><!-- Populated by JS --></select>
+                </div>
+                <div class="form-group">
+                    <label>Designation</label>
+                    <input type="text" id="emp-designation" placeholder="E.g. Field Engineer" value="Field Engineer">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Salary Template</label>
+                    <select id="emp-salary-template" onchange="updateSalaryFields()"><!-- Populated by JS --></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: All Salary Components — Req #3 -->
+        <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Earnings (All Components)</h3>
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="form-group">
+                    <label>Basic Salary (₹)</label>
+                    <input type="text" id="offer-basic" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>HRA (₹)</label>
+                    <input type="text" id="offer-hra" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Allowance (₹)</label>
+                    <input type="text" id="offer-mobile" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>Local Conveyance (₹)</label>
+                    <input type="text" id="offer-conveyance" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>VDA (₹)</label>
+                    <input type="text" id="offer-vda" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>Statutory Bonus (₹)</label>
+                    <input type="text" id="offer-statbonus" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>LTA (₹)</label>
+                    <input type="text" id="offer-lta" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>Other Allowance (₹)</label>
+                    <input type="text" id="offer-otherallow" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>Special Allowance (₹)</label>
+                    <input type="text" id="offer-special" oninput="calcOfferSalary()">
+                </div>
+            </div>
+
+            <h3 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 20px; margin-bottom: 12px;">Deductions</h3>
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="form-group">
+                    <label>PF Employee (₹)</label>
+                    <input type="text" id="offer-pf" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>ESIC Employee (₹)</label>
+                    <input type="text" id="offer-esic" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>Professional Tax (₹)</label>
+                    <input type="text" id="offer-pt" oninput="calcOfferSalary()">
+                </div>
+                <div class="form-group">
+                    <label>TDS (₹)</label>
+                    <input type="text" id="offer-tds" oninput="calcOfferSalary()">
+                </div>
+            </div>
+
+            <div style="margin-top: 16px; background: linear-gradient(135deg, #1e293b, #334155); padding: 16px; border-radius: 8px; color: white; display: flex; justify-content: space-between; align-items: center;">
+                <div style="text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Gross Salary</div>
+                    <div id="offer-gross" style="font-size: 18px; font-weight: 500;">₹0</div>
+                </div>
+                <div style="font-size: 20px; font-weight: 300; opacity: 0.5;">-</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Total Deductions</div>
+                    <div id="offer-total-ded" style="font-size: 18px; font-weight: 500; color: #fca5a5;">₹0</div>
+                </div>
+                <div style="font-size: 20px; font-weight: 300; opacity: 0.5;">=</div>
+                <div style="text-align: right; background: #4f46e5; padding: 8px 16px; border-radius: 6px;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 2px;">Net Payable</div>
+                    <div id="offer-net" style="font-size: 20px; font-weight: 700;">₹0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Asset / Equipment Checklist — Req #2 -->
+        <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                🔧 Asset / Equipment Allocation
+            </h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Confirm assets to be provided.</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #f9fafb; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="checkbox" id="asset-laptop" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    <label for="asset-laptop" style="font-weight: 500; min-width: 100px;">Laptop</label>
+                    <input type="text" id="asset-laptop-details" placeholder="Model / serial (optional)" style="flex: 1; padding: 6px 10px; font-size: 13px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #f9fafb; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="checkbox" id="asset-tools" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    <label for="asset-tools" style="font-weight: 500; min-width: 100px;">Tools / Kit</label>
+                    <input type="text" id="asset-tools-details" placeholder="Description (optional)" style="flex: 1; padding: 6px 10px; font-size: 13px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #f9fafb; border-radius: 8px; border: 1px solid var(--border);">
+                    <input type="checkbox" id="asset-datacard" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    <label for="asset-datacard" style="font-weight: 500; min-width: 100px;">Data Card</label>
+                    <input type="text" id="asset-datacard-details" placeholder="SIM / number (optional)" style="flex: 1; padding: 6px 10px; font-size: 13px;">
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px;">
+            <button class="secondary" onclick="closeModal()">Cancel</button>
+            <button onclick="initiateOffer()">Generate &amp; Send Offer to Employee</button>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Modal Overlay for Asset Allocation -->
+<div id="asset-allocate-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('active')">
+    <div class="modal-card" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 style="margin: 0;">Allocate Asset</h2>
+            <button class="modal-close" onclick="document.getElementById('asset-allocate-modal').classList.remove('active')">×</button>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Asset Details</p>
+            <p style="font-weight: 500; font-size: 15px;" id="allocate-asset-info"></p>
+        </div>
+        <div class="form-group">
+            <label>Select Employee to Allocate <span style="color: var(--danger);">*</span></label>
+            <select id="allocate-emp-select"></select>
+            <input type="hidden" id="allocate-asset-id">
+        </div>
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="secondary" onclick="document.getElementById('asset-allocate-modal').classList.remove('active')">Cancel</button>
+            <button onclick="confirmAllocate()">Confirm Allocation</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Overlay for Asset Transfer -->
+<div id="asset-transfer-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('active')">
+    <div class="modal-card" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 style="margin: 0;">Transfer Asset</h2>
+            <button class="modal-close" onclick="document.getElementById('asset-transfer-modal').classList.remove('active')">×</button>
+        </div>
+        <div style="margin-bottom: 20px; padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+            <p style="font-size: 12px; color: #991b1b; margin-bottom: 4px;">Currently Assigned To:</p>
+            <p style="font-weight: 500; font-size: 14px; color: #7f1d1d;" id="transfer-from-info"></p>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Asset Details</p>
+            <p style="font-weight: 500; font-size: 15px;" id="transfer-asset-info"></p>
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label>Transfer To Employee <span style="color: var(--danger);">*</span></label>
+            <select id="transfer-emp-select"></select>
+            <input type="hidden" id="transfer-asset-id">
+        </div>
+        <div class="form-group">
+            <label>Reason for Transfer</label>
+            <input type="text" id="transfer-reason" placeholder="e.g. Role change, replacement...">
+        </div>
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="secondary" onclick="document.getElementById('asset-transfer-modal').classList.remove('active')">Cancel</button>
+            <button onclick="confirmTransfer()">Confirm Transfer</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
